@@ -2,7 +2,7 @@
 
 Este projeto é uma aplicação web full-stack projetada para ajudar startups e empreendedores a criar briefings de projeto detalhados por meio de um formulário simples e guiado.
 
-## ✨ Features
+## Features
 
 - **Geração de Briefing Guiada**: Um formulário de várias etapas que coleta informações sobre a empresa, problema, solução, objetivos e recursos.
 - **Backend Inteligente**: Utiliza Go para processar os dados e tem capacidade para se integrar a serviços de IA generativa para criar o conteúdo do briefing.
@@ -11,7 +11,7 @@ Este projeto é uma aplicação web full-stack projetada para ajudar startups e 
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 O projeto é dividido em duas partes principais: um backend em Go e um frontend em React.
 
@@ -34,7 +34,7 @@ O projeto é dividido em duas partes principais: um backend em Go e um frontend 
 
 ---
 
-## 📂 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 Briefing generation system/
@@ -56,7 +56,7 @@ Briefing generation system/
 
 ---
 
-## 🏁 Como Começar
+## Como Começar
 
 Siga as instruções abaixo para configurar e executar o projeto localmente.
 
