@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public."BriefingHistory" (
     id serial PRIMARY KEY,
     briefing text NOT NULL,
     user_id integer NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user
         FOREIGN KEY (user_id)
         REFERENCES public."Users"(id)

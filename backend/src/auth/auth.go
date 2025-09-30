@@ -15,7 +15,7 @@ import (
 func CreateToken(userID string) (string, error) {
 	permissions := jwt.MapClaims{}
 	permissions["authorized"] = true
-	permissions["exp"] = time.Now().Add(time.Hour * 6).Unix()
+	permissions["exp"] = time.Now().Add(time.Hour * 12).Unix()
 	permissions["userID"] = userID
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, permissions)

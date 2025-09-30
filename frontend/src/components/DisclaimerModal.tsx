@@ -24,11 +24,14 @@ const DisclaimerModal = ({ isOpen, onClose }: DisclaimerModalProps) => {
             <DialogTitle>Aviso Importante</DialogTitle>
           </div>
           <DialogDescription className="text-base leading-relaxed pt-4">
-            Este site foi criado para um trabalho da faculdade. Os números apresentados aqui são fictícios e foram usados para tornar a experiência mais real.
+            Este site foi criado para um trabalho de faculdade. Os números apresentados aqui são fictícios e foram usados para tornar a experiência mais real.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end pt-4">
-          <Button onClick={onClose}>
+          <Button onClick={() => {
+            localStorage.setItem("disclaimer-accepted", "true");
+            onClose();
+          }}>
             Entendi
           </Button>
         </div>

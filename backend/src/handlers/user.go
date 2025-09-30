@@ -2,12 +2,13 @@ package handlers
 
 import (
 	response "briefing-generation-system/pkg/utils"
+	"briefing-generation-system/src/auth"
 	"briefing-generation-system/src/models"
 	"briefing-generation-system/src/services"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -44,12 +45,50 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("%v", user)
-
 	if err := services.CreateUser(&user); err != nil {
 		response.ResponseError(w, err, http.StatusInternalServerError)
 		return
 	}
 
+	token, err := auth.CreateToken(strconv.Itoa(user.ID))
+	if err != nil {
+		response.ResponseError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   int((12 * time.Hour).Seconds()), // 43200
+	})
+
 	response.ResponseJSON(w, user, http.StatusCreated)
+
+}
+
+func LoginUser(w http.ResponseWriter, r *http.Request) {
+	var login models.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&login); err != nil {
+		response.ResponseError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	token, err := services.LoginUser(login.Email, login.Password)
+	if err != nil {
+		response.ResponseError(w, err, http.StatusUnauthorized)
+		return
+	}
+
+		http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   int((12 * time.Hour).Seconds()), // 43200
+	})
+
+	response.ResponseJSON(w, map[string]string{
+		"token": token,
+	}, http.StatusOK)
 }

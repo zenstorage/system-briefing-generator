@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 var (
 	POSTGRES_USER     string
 	POSTGRES_PASSWORD string
@@ -7,7 +9,9 @@ var (
 
 	GEMINI_API_KEY string
 
-	SECRET_KEY string
+	SECRET_KEY []byte
+
+	POSTGRES_URL string
 )
 
 func Load() {
@@ -25,5 +29,7 @@ func Load() {
 	POSTGRES_PASSWORD = "postgres"
 	POSTGRES_DBNAME = "BriefingGenerationSystem"
 	GEMINI_API_KEY = "AIzaSyAHDOYAIwOLwf2fKn5lx-OUOvJ_mE9n3lo"
-	SECRET_KEY = "t00jtJSwW0VkEO9Hj+pfTX5Kyfp1tmgLCTf1IzrSX8bXKuyuZhERh6nFoJLgpvVEoMwS0RwxTkYnrvuE6TJc0Q=="
+	SECRET_KEY = []byte("t00jtJSwW0VkEO9Hj+pfTX5Kyfp1tmgLCTf1IzrSX8bXKuyuZhERh6nFoJLgpvVEoMwS0RwxTkYnrvuE6TJc0Q==")
+
+	POSTGRES_URL = os.Getenv("POSTGRES_URL")
 }

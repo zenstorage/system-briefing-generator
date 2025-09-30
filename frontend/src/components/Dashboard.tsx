@@ -5,19 +5,22 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BriefingCard } from "./BriefingCard";
 import { BriefingGenerator } from "./BriefingGenerator";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  FileText, 
-  TrendingUp, 
-  Users, 
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  Plus,
+  Search,
+  Filter,
+  FileText,
+  TrendingUp,
+  Users,
   Clock,
-  BarChart3 
+  BarChart3,
+  Award
 } from "lucide-react";
 import heroImage from "@/assets/hero-briefing.jpg";
 
-// Mock data for demonstration
+import { useTranslation } from "react-i18next";
+
 const mockBriefings = [
   {
     id: "1",
@@ -28,7 +31,7 @@ const mockBriefings = [
     clientName: "FinTech Solutions",
   },
   {
-    id: "2", 
+    id: "2",
     title: "Rebranding - EduTech Platform",
     description: "Renovação completa da identidade visual e posicionamento de marca para plataforma educacional.",
     status: "in-progress" as const,
@@ -40,43 +43,13 @@ const mockBriefings = [
     title: "Campanha de Acquisition - HealthApp",
     description: "Estratégia de aquisição de usuários para aplicativo de saúde e bem-estar.",
     status: "draft" as const,
-    createdAt: "20 Jan 2024", 
+    createdAt: "20 Jan 2024",
     clientName: "HealthTech Corp",
   },
 ];
 
-const stats = [
-  {
-    title: "Total de Briefings",
-    value: "24",
-    description: "3 novos este mês",
-    icon: FileText,
-    trend: "+12%",
-  },
-  {
-    title: "Clientes Ativos",
-    value: "18",
-    description: "Startups atendidas",
-    icon: Users,
-    trend: "+5%",
-  },
-  {
-    title: "Taxa de Sucesso",
-    value: "94%",
-    description: "Projetos finalizados",
-    icon: TrendingUp,
-    trend: "+2%",
-  },
-  {
-    title: "Tempo Médio",
-    value: "5.2d",
-    description: "Para completar briefing",
-    icon: Clock,
-    trend: "-8%",
-  },
-];
-
 export const Dashboard = () => {
+  const { t } = useTranslation();
   const [currentView, setCurrentView] = useState<"dashboard" | "generator">("dashboard");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -89,30 +62,62 @@ export const Dashboard = () => {
     return <BriefingGenerator onBack={() => setCurrentView("dashboard")} />;
   }
 
+  const stats = [
+    {
+      title: t("dashboard.stats.total_briefings.title"),
+      value: "24",
+      description: t("dashboard.stats.total_briefings.description"),
+      icon: FileText,
+      trend: "+12%",
+    },
+    {
+      title: t("dashboard.stats.active_clients.title"),
+      value: "18",
+      description: t("dashboard.stats.active_clients.description"),
+      icon: Users,
+      trend: "+5%",
+    },
+    {
+      title: t("dashboard.stats.success_rate.title"),
+      value: "94%",
+      description: t("dashboard.stats.success_rate.description"),
+      icon: TrendingUp,
+      trend: "+2%",
+    },
+    {
+      title: t("dashboard.stats.avg_time.title"),
+      value: "5.2d",
+      description: t("dashboard.stats.avg_time.description"),
+      icon: Clock,
+      trend: "-8%",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
+              <SidebarTrigger className="md:hidden" />
               <div className="p-2 rounded-lg bg-gradient-primary">
                 <FileText className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">BriefGen</h1>
-                <p className="text-sm text-muted-foreground">Sistema de Briefings para Startups</p>
+                <h1 className="text-xl sm:text-2xl font-bold">{t("dashboard.header.brand")}</h1>
+                <p className="text-sm text-muted-foreground hidden sm:block">{t("dashboard.header.subtitle")}</p>
               </div>
             </div>
-            
-            <Button 
-              variant="hero" 
+
+            <Button
+              variant="hero"
               size="lg"
               onClick={() => setCurrentView("generator")}
               className="shadow-lg"
             >
-              <Plus className="h-5 w-5" />
-              Novo Briefing
+              <Plus className="h-5 w-5 sm:mr-2" />
+              <span className="hidden sm:inline">{t("dashboard.header.new_briefing_button")}</span>
             </Button>
           </div>
         </div>
@@ -122,30 +127,29 @@ export const Dashboard = () => {
         {/* Hero Section */}
         <section className="relative overflow-hidden rounded-2xl">
           <div className="absolute inset-0">
-            <img 
-              src={heroImage} 
+            <img
+              src={heroImage}
               alt="Ilustração profissional de briefings para startups"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70" />
           </div>
-          <div className="relative px-8 py-12 text-primary-foreground">
+          <div className="relative px-6 sm:px-8 py-10 sm:py-12 text-primary-foreground">
             <div className="max-w-2xl">
-              <h2 className="text-4xl font-bold mb-4">
-                Crie briefings estratégicos para sua startup
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+                {t("dashboard.hero.title")}
               </h2>
-              <p className="text-xl mb-6 text-primary-foreground/90">
-                Transforme suas ideias em briefings estruturados e profissionais 
-                que impulsionam o crescimento do seu negócio.
+              <p className="text-lg sm:text-xl mb-6 text-primary-foreground/90">
+                {t("dashboard.hero.subtitle")}
               </p>
-              <Button 
-                variant="accent" 
+              <Button
+                variant="accent"
                 size="lg"
                 onClick={() => setCurrentView("generator")}
                 className="shadow-xl"
               >
-                Começar Agora
-                <BarChart3 className="h-5 w-5" />
+                {t("dashboard.hero.cta")}
+                <BarChart3 className="h-5 w-5 ml-2" />
               </Button>
             </div>
           </div>
@@ -156,7 +160,7 @@ export const Dashboard = () => {
           {stats.map((stat) => {
             const Icon = stat.icon;
             const isPositive = stat.trend.startsWith('+');
-            
+
             return (
               <Card key={stat.title} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
@@ -164,7 +168,7 @@ export const Dashboard = () => {
                     <div className="p-2 rounded-lg bg-primary/10">
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
-                    <Badge 
+                    <Badge
                       variant={isPositive ? "default" : "secondary"}
                       className={isPositive ? "bg-gradient-accent" : ""}
                     >
@@ -182,28 +186,70 @@ export const Dashboard = () => {
           })}
         </section>
 
+        {/* Gamification Section */}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold">{t("gamification.title")}</h2>
+            <p className="text-muted-foreground">
+              {t("gamification.subtitle")}
+            </p>
+          </div>
+          <Card>
+            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              <div className="flex flex-col items-center md:items-start">
+                <div className="text-sm text-muted-foreground">{t("gamification.points")}</div>
+                <div className="text-4xl font-bold">1,250</div>
+                <div className="text-sm text-muted-foreground mt-2">{t("gamification.level")} 5</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-sm text-muted-foreground mb-2">{t("gamification.achievements")}</div>
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="p-3 rounded-full bg-yellow-400 text-white">
+                      <Award className="h-6 w-6" />
+                    </div>
+                    <div className="text-xs text-center">{t("gamification.pioneer_badge")}</div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="p-3 rounded-full bg-blue-400 text-white">
+                      <Award className="h-6 w-6" />
+                    </div>
+                    <div className="text-xs text-center">{t("gamification.five_briefings_badge")}</div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 opacity-50">
+                    <div className="p-3 rounded-full bg-gray-400 text-white">
+                      <Award className="h-6 w-6" />
+                    </div>
+                    <div className="text-xs text-center">{t("gamification.master_badge")}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Briefings Section */}
         <section className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Seus Briefings</h2>
+              <h2 className="text-2xl font-bold">{t("dashboard.briefings_section.title")}</h2>
               <p className="text-muted-foreground">
-                Gerencie e acompanhe o progresso dos seus projetos
+                {t("dashboard.briefings_section.subtitle")}
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <div className="relative">
+              <div className="relative flex-grow">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar briefings..."
+                  placeholder={t("dashboard.briefings_section.search_placeholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                  aria-label="Buscar briefings por título ou cliente"
+                  className="pl-10 w-full sm:w-64"
+                  aria-label={t("dashboard.briefings_section.search_aria_label")}
                 />
               </div>
-              <Button variant="outline" size="icon" aria-label="Filtrar briefings">
+              <Button variant="outline" size="icon" aria-label={t("dashboard.briefings_section.filter_aria_label")}>
                 <Filter className="h-4 w-4" />
               </Button>
             </div>
@@ -214,21 +260,21 @@ export const Dashboard = () => {
               <CardContent className="text-center">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  {searchTerm ? "Nenhum briefing encontrado" : "Nenhum briefing criado ainda"}
+                  {searchTerm ? t("dashboard.briefings_section.no_briefings_found_title") : t("dashboard.briefings_section.no_briefings_created_title")}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {searchTerm 
-                    ? `Nenhum resultado para "${searchTerm}"`
-                    : "Comece criando seu primeiro briefing estratégico"
+                  {searchTerm
+                    ? `${t("dashboard.briefings_section.no_results_for")} "${searchTerm}"`
+                    : t("dashboard.briefings_section.start_creating_briefing")
                   }
                 </p>
                 {!searchTerm && (
-                  <Button 
+                  <Button
                     variant="outline-primary"
                     onClick={() => setCurrentView("generator")}
                   >
                     <Plus className="h-4 w-4" />
-                    Criar Primeiro Briefing
+                    {t("dashboard.briefings_section.create_first_briefing_button")}
                   </Button>
                 )}
               </CardContent>

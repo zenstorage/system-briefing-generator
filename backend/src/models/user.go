@@ -7,6 +7,11 @@ type User struct {
 	Password string `json:"password,omitempty" db:"password"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email" db:"email"`
+	Password string `json:"password" db:"password"`
+}
+
 type Briefing struct {
 	ID           int    `json:"id" db:"id"`
 	BriefingForm string `json:"briefing_form" db:"briefing_form"`
