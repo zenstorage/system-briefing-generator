@@ -1,48 +1,53 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Share2, Printer, Image } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/components/ui/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import html2canvas from "html2canvas";
 
 interface BriefingResultProps {
-  briefingData: any;
+  briefingContent: string;
   onBack: () => void;
   onNewBriefing: () => void;
 }
 
-export const BriefingResult = ({ briefingData, onBack, onNewBriefing }: BriefingResultProps) => {
+export const BriefingResult = ({ briefingContent, onBack, onNewBriefing }: BriefingResultProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const getBriefingContent = () => {
-    try {
-      if (briefingData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        const textContent = briefingData.candidates[0].content.parts[0].text;
-        const parsedContent = JSON.parse(textContent);
-        return parsedContent.briefing || textContent;
-      }
-      return "Erro ao processar o briefing gerado.";
-    } catch (error) {
-      console.error("Error parsing briefing content:", error);
-      return "Erro ao processar o briefing gerado.";
-    }
+  const handlePrint = () => {
+    window.print();
   };
 
-  const handleDownload = async () => {
+  const handleDownloadPng = async () => {
     setIsLoading(true);
     try {
-      const content = getBriefingContent();
-      const blob = new Blob([content], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'briefing-startup.md';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const element = document.getElementById('briefing-content');
+      if (element) {
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          backgroundColor: null,
+          onclone: (document) => {
+            const clonedElement = document.getElementById('briefing-content');
+            if (clonedElement) {
+              clonedElement.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--background').trim() === '240 10% 3.9%' ? '#09090b' : '#ffffff';
+              clonedElement.style.padding = '3rem';
+            }
+          }
+        });
+        const link = document.createElement('a');
+        link.download = 'briefing-startup.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
     } catch (error) {
-      console.error("Error downloading briefing:", error);
+      console.error("Error downloading PNG:", error);
+      toast({
+        title: "Erro ao baixar PNG",
+        description: "Ocorreu um erro ao tentar baixar o briefing como PNG.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -53,40 +58,46 @@ export const BriefingResult = ({ briefingData, onBack, onNewBriefing }: Briefing
       try {
         await navigator.share({
           title: 'Briefing da Startup',
-          text: getBriefingContent(),
+          text: briefingContent,
         });
       } catch (error) {
         console.error("Error sharing:", error);
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(getBriefingContent());
-        toast({
-          title: "Briefing copiado!",
-          description: "O briefing foi copiado para a área de transferência.",
-        });
-      } catch (error) {
-        console.error("Error copying to clipboard:", error);
-      }
+      toast({
+        title: "Compartilhamento não suportado",
+        description: "Seu navegador não suporta a função de compartilhamento.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto mb-6 space-y-6 mt-6 px-4 md:px-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             onClick={onBack}
             aria-label="Voltar para gerador"
+            size="icon" 
+            className="md:hidden"
           >
             <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={onBack}
+            aria-label="Voltar para gerador"
+            className="hidden md:flex"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Briefing Gerado</h1>
-            <p className="text-muted-foreground">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold truncate">Briefing Gerado</h1>
+            <p className="text-muted-foreground text-sm md:text-base hidden sm:block">
               Seu briefing está pronto para ser usado
             </p>
           </div>
@@ -97,19 +108,86 @@ export const BriefingResult = ({ briefingData, onBack, onNewBriefing }: Briefing
             variant="outline" 
             onClick={handleShare}
             aria-label="Compartilhar briefing"
+            className="hidden md:flex"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-4 w-4 mr-2" />
             Compartilhar
           </Button>
-          <Button 
-            variant="secondary" 
-            onClick={handleDownload}
-            disabled={isLoading}
-            aria-label="Baixar briefing"
+           <Button 
+            variant="outline" 
+            onClick={handleShare}
+            aria-label="Compartilhar briefing"
+            size="icon"
+            className="md:hidden"
           >
-            <Download className="h-4 w-4" />
-            {isLoading ? "Baixando..." : "Baixar"}
+            <Share2 className="h-4 w-4" />
           </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="secondary" 
+                aria-label="Baixar briefing"
+                className="hidden md:flex"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Baixar
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48">
+              <div className="grid gap-4">
+                <Button
+                  variant="ghost"
+                  onClick={handlePrint}
+                  className="justify-start"
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Imprimir
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleDownloadPng}
+                  disabled={isLoading}
+                  className="justify-start"
+                >
+                  <Image className="mr-2 h-4 w-4" />
+                  {isLoading ? "Baixando..." : "Baixar PNG"}
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+           <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="secondary" 
+                aria-label="Baixar briefing"
+                size="icon"
+                className="md:hidden"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48">
+              <div className="grid gap-4">
+                <Button
+                  variant="ghost"
+                  onClick={handlePrint}
+                  className="justify-start"
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Imprimir
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleDownloadPng}
+                  disabled={isLoading}
+                  className="justify-start"
+                >
+                  <Image className="mr-2 h-4 w-4" />
+                  {isLoading ? "Baixando..." : "Baixar PNG"}
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -121,8 +199,9 @@ export const BriefingResult = ({ briefingData, onBack, onNewBriefing }: Briefing
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="prose prose-slate dark:prose-invert max-w-none">
+          <div className="prose prose-slate dark:prose-invert max-w-none" id="briefing-content">
             <ReactMarkdown
+              
               components={{
                 h1: ({ children }) => (
                   <h1 className="text-2xl font-bold text-primary mb-4 border-b border-border pb-2">
@@ -161,7 +240,7 @@ export const BriefingResult = ({ briefingData, onBack, onNewBriefing }: Briefing
                 ),
               }}
             >
-              {getBriefingContent()}
+              {briefingContent}
             </ReactMarkdown>
           </div>
         </CardContent>

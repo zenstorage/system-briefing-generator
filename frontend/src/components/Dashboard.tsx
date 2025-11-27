@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BriefingCard } from "./BriefingCard";
-import { BriefingGenerator } from "./BriefingGenerator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { BriefingResult } from "./BriefingResult";
+import { Skeleton } from "@/components/ui/skeleton";
+
+
 import {
   Plus,
   Search,
@@ -15,115 +18,217 @@ import {
   Users,
   Clock,
   BarChart3,
-  Award
+  Award,
+  CloudCog
 } from "lucide-react";
 import heroImage from "@/assets/hero-briefing.jpg";
 
 import { useTranslation } from "react-i18next";
+import Markdown from "react-markdown";
+import { API_ENDPOINT } from "@/App";
+import Fuse from "fuse.js";
 
-const mockBriefings = [
-  {
-    id: "1",
-    title: "Campanha de Lançamento - FinApp",
-    description: "Estratégia de marketing digital para lançamento de aplicativo financeiro voltado para pequenos empreendedores.",
-    status: "completed" as const,
-    createdAt: "15 Jan 2024",
-    clientName: "FinTech Solutions",
-  },
-  {
-    id: "2",
-    title: "Rebranding - EduTech Platform",
-    description: "Renovação completa da identidade visual e posicionamento de marca para plataforma educacional.",
-    status: "in-progress" as const,
-    createdAt: "18 Jan 2024",
-    clientName: "EduInova",
-  },
-  {
-    id: "3",
-    title: "Campanha de Acquisition - HealthApp",
-    description: "Estratégia de aquisição de usuários para aplicativo de saúde e bem-estar.",
-    status: "draft" as const,
-    createdAt: "20 Jan 2024",
-    clientName: "HealthTech Corp",
-  },
-];
+interface Briefing {
+  id: string;
+  title: string;
+  description: string;
+  status: "draft" | "completed" | "in-progress";
+  createdAt: string;
+  clientName: string;
+  briefingResult?: any;
+}
 
 export const Dashboard = () => {
   const { t } = useTranslation();
-  const [currentView, setCurrentView] = useState<"dashboard" | "generator">("dashboard");
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [briefings, setBriefings] = useState<Briefing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedBriefing, setSelectedBriefing] = useState<Briefing | null>(null);
 
-  const filteredBriefings = mockBriefings.filter(briefing =>
-    briefing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    briefing.clientName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchBriefings = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_ENDPOINT}/api/briefings`, {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          console.error("Fetched data is not an array:", data);
+          setBriefings([]);
+          return;
+        }
+        const formattedBriefings = data.map((briefing: any) => ({
+          id: briefing.id,
+          title: briefing.briefing_result.briefing_short_title ?? 'Untitled Briefing',
+          description: (briefing.briefing_result?.briefing?.substring(0, 100) ?? 'No description available') + "...",
+          status: "completed" as const,
+          createdAt: new Date(briefing.created_at).toISOString(),
+          clientName: briefing.company_name ?? 'Unknown Client',
+          briefingResult: briefing.briefing_result,
+        }));
+        setBriefings(formattedBriefings);
 
-  if (currentView === "generator") {
-    return <BriefingGenerator onBack={() => setCurrentView("dashboard")} />;
-  }
+        const totalBriefings = formattedBriefings.length;
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const monthlyBriefings = formattedBriefings.filter((briefing: Briefing) => {
+          const briefingDate = new Date(briefing.createdAt);
+          return briefingDate.getMonth() === currentMonth && briefingDate.getFullYear() === currentYear;
+        }).length;
 
-  const stats = [
+        const monthlyPercentage = totalBriefings > 0 ? (monthlyBriefings / totalBriefings) * 100 : 0;
+
+        setStats([
+          {
+            title: t("dashboard.stats.total_briefings.title"),
+            value: totalBriefings.toString(),
+            description: t("dashboard.stats.total_briefings.description"),
+            icon: FileText,
+            trend: `${monthlyPercentage.toFixed(0)}%`,
+          },
+          {
+            title: t("dashboard.stats.monthly_briefings.title"),
+            value: monthlyBriefings.toString(),
+            description: t("dashboard.stats.monthly_briefings.description"),
+            icon: TrendingUp,
+            trend: `${monthlyPercentage.toFixed(0)}%`,
+          },
+          {
+            title: t("dashboard.stats.average_briefings.title"),
+            value: "0",
+            description: t("dashboard.stats.average_briefings.description"),
+            icon: BarChart3,
+            trend: "0%",
+          },
+          {
+            title: t("dashboard.stats.completion_rate.title"),
+            value: "0%",
+            description: t("dashboard.stats.completion_rate.description"),
+            icon: Award,
+            trend: "0%",
+          },
+        ]);
+
+
+      } catch (error) {
+        console.error("Error fetching briefings:", error);
+        setBriefings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBriefings();
+  }, []);
+
+  const fuse = new Fuse(briefings, {
+    keys: ["title", "clientName", "description"],
+  });
+
+  const filteredBriefings = searchTerm
+    ? fuse.search(searchTerm).map((result) => result.item)
+    : briefings;
+
+  const handleBriefingClick = (briefing: Briefing) => {
+    console.log("Briefing clicked:", briefing);
+    setSelectedBriefing(briefing);
+  };
+
+  useEffect(() => {
+    setStats(prevStats => [
+      {
+        ...prevStats[0],
+        title: t("dashboard.stats.total_briefings.title"),
+        description: t("dashboard.stats.total_briefings.description"),
+      },
+      {
+        ...prevStats[1],
+        title: t("dashboard.stats.monthly_briefings.title"),
+        description: t("dashboard.stats.monthly_briefings.description"),
+      },
+      {
+        ...prevStats[2],
+        title: t("dashboard.stats.average_briefings.title"),
+        description: t("dashboard.stats.average_briefings.description"),
+      },
+      {
+        ...prevStats[3],
+        title: t("dashboard.stats.completion_rate.title"),
+        description: t("dashboard.stats.completion_rate.description"),
+      },
+    ]);
+  }, [t]);
+  
+
+  const [stats, setStats] = useState([
     {
       title: t("dashboard.stats.total_briefings.title"),
-      value: "24",
+      value: "0",
       description: t("dashboard.stats.total_briefings.description"),
       icon: FileText,
-      trend: "+12%",
+      trend: "0%",
     },
     {
-      title: t("dashboard.stats.active_clients.title"),
-      value: "18",
-      description: t("dashboard.stats.active_clients.description"),
-      icon: Users,
-      trend: "+5%",
-    },
-    {
-      title: t("dashboard.stats.success_rate.title"),
-      value: "94%",
-      description: t("dashboard.stats.success_rate.description"),
+      title: t("dashboard.stats.monthly_briefings.title"),
+      value: "0",
+      description: t("dashboard.stats.monthly_briefings.description"),
       icon: TrendingUp,
-      trend: "+2%",
+      trend: "0%",
     },
     {
-      title: t("dashboard.stats.avg_time.title"),
-      value: "5.2d",
-      description: t("dashboard.stats.avg_time.description"),
-      icon: Clock,
-      trend: "-8%",
+      title: t("dashboard.stats.average_briefings.title"),
+      value: "0",
+      description: t("dashboard.stats.average_briefings.description"),
+      icon: BarChart3,
+      trend: "0%",
     },
-  ];
+    {
+      title: t("dashboard.stats.completion_rate.title"),
+      value: "0%",
+      description: t("dashboard.stats.completion_rate.description"),
+      icon: Award,
+      trend: "0%",
+    },
+  ]);
+
+  const handleBack = () => {
+    setSelectedBriefing(null);
+  };
+
+  if (selectedBriefing) {
+    console.log(selectedBriefing.briefingResult.briefing)
+    return (
+      <BriefingResult
+        briefingContent={selectedBriefing.briefingResult.briefing.replaceAll("\\n", "\n")}
+        onBack={handleBack}
+        onNewBriefing={() => navigate("/dashboard/new")}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="md:hidden" />
-              <div className="p-2 rounded-lg bg-gradient-primary">
-                <FileText className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold">{t("dashboard.header.brand")}</h1>
-                <p className="text-sm text-muted-foreground hidden sm:block">{t("dashboard.header.subtitle")}</p>
-              </div>
-            </div>
 
-            <Button
-              variant="hero"
-              size="lg"
-              onClick={() => setCurrentView("generator")}
-              className="shadow-lg"
-            >
-              <Plus className="h-5 w-5 sm:mr-2" />
-              <span className="hidden sm:inline">{t("dashboard.header.new_briefing_button")}</span>
-            </Button>
-          </div>
-        </div>
-      </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        <div className="flex justify-end">
+          <Button
+            variant="hero"
+            size="lg"
+            onClick={() => navigate("/dashboard/new")}
+            className="shadow-lg"
+          >
+            <Plus className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">{t("dashboard.header.new_briefing_button")}</span>
+          </Button>
+        </div>
         {/* Hero Section */}
         <section className="relative overflow-hidden rounded-2xl">
           <div className="absolute inset-0">
@@ -145,7 +250,7 @@ export const Dashboard = () => {
               <Button
                 variant="accent"
                 size="lg"
-                onClick={() => setCurrentView("generator")}
+                onClick={() => navigate("/dashboard/new")}
                 className="shadow-xl"
               >
                 {t("dashboard.hero.cta")}
@@ -186,48 +291,6 @@ export const Dashboard = () => {
           })}
         </section>
 
-        {/* Gamification Section */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold">{t("gamification.title")}</h2>
-            <p className="text-muted-foreground">
-              {t("gamification.subtitle")}
-            </p>
-          </div>
-          <Card>
-            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <div className="flex flex-col items-center md:items-start">
-                <div className="text-sm text-muted-foreground">{t("gamification.points")}</div>
-                <div className="text-4xl font-bold">1,250</div>
-                <div className="text-sm text-muted-foreground mt-2">{t("gamification.level")} 5</div>
-              </div>
-              <div className="md:col-span-2">
-                <div className="text-sm text-muted-foreground mb-2">{t("gamification.achievements")}</div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="p-3 rounded-full bg-yellow-400 text-white">
-                      <Award className="h-6 w-6" />
-                    </div>
-                    <div className="text-xs text-center">{t("gamification.pioneer_badge")}</div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="p-3 rounded-full bg-blue-400 text-white">
-                      <Award className="h-6 w-6" />
-                    </div>
-                    <div className="text-xs text-center">{t("gamification.five_briefings_badge")}</div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 opacity-50">
-                    <div className="p-3 rounded-full bg-gray-400 text-white">
-                      <Award className="h-6 w-6" />
-                    </div>
-                    <div className="text-xs text-center">{t("gamification.master_badge")}</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
         {/* Briefings Section */}
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -255,7 +318,22 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          {filteredBriefings.length === 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-full mb-4" />
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-1/4" />
+                      <Skeleton className="h-4 w-1/4" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredBriefings.length === 0 ? (
             <Card className="py-12">
               <CardContent className="text-center">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -271,7 +349,7 @@ export const Dashboard = () => {
                 {!searchTerm && (
                   <Button
                     variant="outline-primary"
-                    onClick={() => setCurrentView("generator")}
+                    onClick={() => navigate("/dashboard/new")}
                   >
                     <Plus className="h-4 w-4" />
                     {t("dashboard.briefings_section.create_first_briefing_button")}
@@ -285,10 +363,7 @@ export const Dashboard = () => {
                 <BriefingCard
                   key={briefing.id}
                   {...briefing}
-                  onClick={() => {
-                    // Aqui você implementaria a navegação para o briefing específico
-                    console.log("Opening briefing:", briefing.id);
-                  }}
+                  onClick={() => handleBriefingClick(briefing)}
                 />
               ))}
             </div>

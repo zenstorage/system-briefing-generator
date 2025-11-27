@@ -1,0 +1,371 @@
+basePath: /
+definitions:
+  models.Briefing:
+    properties:
+      briefing:
+        type: string
+      briefing_form:
+        type: string
+      id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.BriefingForm:
+    properties:
+      communication_sales_channels:
+        $ref: '#/definitions/models.CommunicationSalesChannels'
+      company:
+        $ref: '#/definitions/models.Company'
+      deliverables:
+        $ref: '#/definitions/models.Deliverables'
+      differentiators:
+        $ref: '#/definitions/models.Differentiators'
+      goals:
+        $ref: '#/definitions/models.Goals'
+      products_services:
+        $ref: '#/definitions/models.ProductsServices'
+      target_audience:
+        $ref: '#/definitions/models.TargetAudience'
+      tone_of_voice:
+        $ref: '#/definitions/models.ToneOfVoice'
+    type: object
+  models.BriefingResult:
+    properties:
+      briefing:
+        type: string
+      briefing_short_title:
+        type: string
+      suggestion_adjustments_and_improvements:
+        type: string
+      suggestion_creation_of_content:
+        type: string
+      suggestion_marking_plan:
+        type: string
+    type: object
+  models.CommunicationSalesChannels:
+    properties:
+      current:
+        items:
+          type: string
+        type: array
+      desired:
+        items:
+          type: string
+        type: array
+    type: object
+  models.Company:
+    properties:
+      description:
+        type: string
+      founded_year:
+        type: string
+      industry:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+    type: object
+  models.Deliverables:
+    properties:
+      budget:
+        type: string
+      deadlines:
+        type: string
+      items:
+        items:
+          type: string
+        type: array
+    type: object
+  models.Differentiators:
+    properties:
+      added_value:
+        items:
+          type: string
+        type: array
+      competitive:
+        items:
+          type: string
+        type: array
+    type: object
+  models.Goals:
+    properties:
+      main:
+        items:
+          type: string
+        type: array
+      quantitative_goals:
+        items:
+          type: string
+        type: array
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.ProductsServices:
+    properties:
+      customer_benefits:
+        items:
+          type: string
+        type: array
+      main:
+        items:
+          type: string
+        type: array
+      price_range:
+        type: string
+    type: object
+  models.TargetAudience:
+    properties:
+      age:
+        type: string
+      channels_used:
+        items:
+          type: string
+        type: array
+      genre:
+        type: string
+      location:
+        type: string
+      needs_pains:
+        type: string
+    type: object
+  models.ToneOfVoice:
+    properties:
+      keywords:
+        items:
+          type: string
+        type: array
+      personality:
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  response.Error:
+    properties:
+      error:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the API for the Briefing Generation System.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Briefing Generation System API
+  version: "1.0"
+paths:
+  /api/briefings:
+    get:
+      consumes:
+      - application/json
+      description: Get all briefings for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Briefing'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get briefings
+      tags:
+      - briefings
+    post:
+      consumes:
+      - application/json
+      description: Get a briefing from a form
+      parameters:
+      - description: Briefing Form
+        in: body
+        name: briefing
+        required: true
+        schema:
+          $ref: '#/definitions/models.BriefingForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BriefingResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get a briefing
+      tags:
+      - briefings
+  /api/users:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of users
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: After
+        in: query
+        name: after
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get users
+      tags:
+      - users
+  /api/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get a user
+      tags:
+      - users
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user
+      parameters:
+      - description: Login
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Login a user
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Create a new user
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

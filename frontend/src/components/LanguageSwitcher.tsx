@@ -1,25 +1,44 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Globe } from "lucide-react";
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
 
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "pt-BR", name: "Português" },
+  ];
+
+  const currentLanguage = languages.find(
+    (lang) => lang.code === i18n.language
+  )?.name || "Language";
+
   return (
-    <div className="flex gap-2">
-      <Button
-        variant={i18n.language === "en" ? "secondary" : "ghost"}
-        size="sm"
-        onClick={() => i18n.changeLanguage("en")}
-      >
-        EN
-      </Button>
-      <Button
-        variant={i18n.language === "pt-BR" ? "secondary" : "ghost"}
-        size="sm"
-        onClick={() => i18n.changeLanguage("pt-BR")}
-      >
-        PT
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Globe className="h-5 w-5" />
+          <span className="sr-only">Switch Language</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {languages.map((lang) => (
+          <DropdownMenuItem
+            key={lang.code}
+            onClick={() => i18n.changeLanguage(lang.code)}
+            className={i18n.language === lang.code ? "font-bold" : ""}
+          >
+            {lang.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

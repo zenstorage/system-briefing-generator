@@ -1,5 +1,27 @@
 package models
 
+type BriefingData struct {
+	ID             int            `json:"id,omitempty"`
+	CreatedAt      any            `json:"created_at,omitempty"`
+	CompanyName    string         `json:"company_name,omitempty"`
+	Industry       string         `json:"industry,omitempty"`
+	TargetAudience string         `json:"target_audience,omitempty"`
+	Problem        string         `json:"problem,omitempty"`
+	Solution       string         `json:"solution,omitempty"`
+	Objectives     string         `json:"objectives,omitempty"`
+	Timeline       string         `json:"timeline,omitempty"`
+	Budget         string         `json:"budget,omitempty"`
+	BriefingResult BriefingResult `json:"briefing_result"`
+}
+
+type BriefingResult struct {
+	Briefing              string `json:"briefing"`
+	BriefingShortTitle    string `json:"briefing_short_title"`
+	SuggestionAdjustments string `json:"suggestion_adjustments_and_improvements"`
+	SuggestionContent     string `json:"suggestion_creation_of_content"`
+	SuggestionMarking     string `json:"suggestion_marking_plan"`
+}
+
 type BriefingForm struct {
 	Company                    Company                    `json:"company"`
 	Goals                      Goals                      `json:"goals"`

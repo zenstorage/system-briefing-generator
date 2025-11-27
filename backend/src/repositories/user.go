@@ -3,6 +3,7 @@ package repositories
 import (
 	"briefing-generation-system/src/database"
 	"briefing-generation-system/src/models"
+	"fmt"
 )
 
 func GetUsers(limit int, after int) ([]*models.User, error) {
@@ -23,20 +24,20 @@ func GetUsers(limit int, after int) ([]*models.User, error) {
 }
 
 func GetUser(userID int) (*models.User, error) {
-	var user *models.User
+	var user models.User
 
 	db, err := database.Connect()
 	if err != nil {
-		return user, err
+		return nil, err
 	}
 	defer db.Close()
 
-	err = db.Select(&user, `SELECT id, name, email, password FROM Users LIMIT 1 WHERE id = $1;`, userID)
+	err = db.Get(&user, `SELECT id, name, email, password FROM users WHERE id = $1 LIMIT 1;`, userID)
 	if err != nil {
-		return user, err
+		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func GetUserByEmail(email string) (*models.User, error) {
@@ -46,10 +47,12 @@ func GetUserByEmail(email string) (*models.User, error) {
 	}
 	defer db.Close()
 
+	fmt.Println("Looking for user with email:", email)
+
 	var user models.User
 	err = db.Get(&user, `
         SELECT id, name, email, password 
-        FROM Users 
+        FROM users 
         WHERE email = $1
         LIMIT 1;`, email)
 	if err != nil {
@@ -66,17 +69,15 @@ func CreateUser(user *models.User) error {
 	}
 	defer db.Close()
 
-	row := db.QueryRow(`
-		INSERT INTO Users (name, email, password)
+	err = db.QueryRow(`
+		INSERT INTO users (name, email, password)
 		VALUES ($1, $2, $3)
 		RETURNING id;
-	`, user.Name, user.Email, user.Password)
-
-	var id int
-	if err = row.Scan(&id); err != nil {
+	`, user.Name, user.Email, user.Password).Scan(&user.ID)
+	fmt.Println("New user ID:", user.ID)
+	if err != nil {
 		return err
 	}
 
-	user.ID = id
 	return nil
 }

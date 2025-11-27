@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+type Error struct {
+	Error string `json:"error"`
+}
+
 func ResponseJSON(w http.ResponseWriter, data any, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -20,9 +24,7 @@ func ResponseJSON(w http.ResponseWriter, data any, statusCode int) {
 }
 
 func ResponseError(w http.ResponseWriter, err error, statusCode int) {
-	ResponseJSON(w, struct {
-		Error string `json:"error"`
-	}{
+	ResponseJSON(w, Error{
 		Error: err.Error(),
 	}, statusCode)
 }

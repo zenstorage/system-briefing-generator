@@ -67,9 +67,6 @@
     "loading_button": "Logging in...",
     "no_account": "Don't have an account?",
     "register_link": "Sign up for free",
-    "social_login": "Or continue with",
-    "google_button": "Google",
-    "twitter_button": "Twitter",
     "toasts": {
       "validation_error": "Validation error",
       "login_success_title": "Login successful!",
@@ -102,10 +99,6 @@
     "register_button": "Create free account",
     "has_account": "Already have an account?",
     "login_link": "Login",
-    "social_register": "Or sign up with",
-    "google_button": "Google",
-    "twitter_button": "Twitter",
-    "privacy_disclaimer": "By signing up, you agree that your data will be processed according to our privacy policy.",
     "toasts": {
       "validation_error": "Validation error",
       "terms_required_title": "Terms required",
@@ -119,61 +112,6 @@
       "password_min_length": "Password must be at least 6 characters long.",
       "passwords_do_not_match": "Passwords do not match."
     }
-  },
-  "admin_login": {
-    "title": "Administrator Access",
-    "subtitle": "Enter your administrator credentials",
-    "form_title": "Administrator Login",
-    "form_subtitle": "Enter your credentials to access the panel"
-  },
-  "pricing": {
-    "title": "Plans and Pricing",
-    "subtitle": "Choose the plan that best suits your needs and start creating amazing briefings.",
-    "free_plan": {
-      "title": "Free",
-      "price": "$0",
-      "description": "For beginners and personal projects",
-      "features": [
-        "5 briefings per month",
-        "Basic templates",
-        "Email support"
-      ],
-      "cta": "Get Started for Free"
-    },
-    "pro_plan": {
-      "title": "Pro",
-      "price": "$29",
-      "description": "For professionals and small teams",
-      "features": [
-        "Unlimited briefings",
-        "Advanced templates",
-        "Team collaboration",
-        "Priority support"
-      ],
-      "cta": "Subscribe to Pro"
-    },
-    "enterprise_plan": {
-      "title": "Enterprise",
-      "price": "Custom",
-      "description": "For large companies and agencies",
-      "features": [
-        "Everything from Pro",
-        "Dedicated account manager",
-        "Custom integrations",
-        "Support SLA"
-      ],
-      "cta": "Contact Us"
-    }
-  },
-  "gamification": {
-    "title": "Gamification",
-    "subtitle": "Your journey and achievements",
-    "points": "Points",
-    "level": "Level",
-    "achievements": "Achievements",
-    "pioneer_badge": "Pioneer",
-    "five_briefings_badge": "Creator of 5 Briefings",
-    "master_badge": "Master of Briefings"
   },
   "dashboard": {
     "header": {
@@ -189,7 +127,19 @@
     "stats": {
       "total_briefings": {
         "title": "Total Briefings",
-        "description": "3 new this month"
+        "description": "All briefings created"
+      },
+      "monthly_briefings": {
+        "title": "Monthly Briefings",
+        "description": "Briefings created this month"
+      },
+      "average_briefings": {
+        "title": "Average Briefings",
+        "description": "Average briefings per day"
+      },
+      "completion_rate": {
+        "title": "Completion Rate",
+        "description": "Percentage of completed briefings"
       },
       "active_clients": {
         "title": "Active Clients",
@@ -220,5 +170,91 @@
   "sales": {
     "title": "Sales Management",
     "subtitle": "This page is under development. Soon, you will be able to manage your sales and subscriptions here."
+  },
+  "logout": {
+    "button_text": "Logout",
+    "toast": {
+      "success_title": "Logged out",
+      "success_description": "You have been successfully logged out."
+    }
+  },
+  "briefing_generator": {
+    "title": "Briefing Generator",
+    "subtitle": "Create a detailed briefing for your startup in 3 simple steps",
+    "back_button": "Back",
+    "back_to_dashboard_aria": "Back to dashboard",
+    "previous_button": "Previous",
+    "next_button": "Next",
+    "generate_button": "Generate Briefing",
+    "generating_button": "Generating...",
+    "step_title": "Step {{step}}",
+    "steps": {
+      "1": {
+        "title": "Startup Information",
+        "description": "Basic data about your company"
+      },
+      "2": {
+        "title": "Problem & Solution",
+        "description": "Define the problem and your value proposition"
+      },
+      "3": {
+        "title": "Objectives & Resources",
+        "description": "Goals, timeline, and budget"
+      }
+    },
+    "step1": {
+      "company_name_label": "Startup Name",
+      "company_name_placeholder": "E.g., TechInova",
+      "company_name_help": "How is your startup known in the market?",
+      "industry_label": "Industry",
+      "industry_placeholder": "Select the industry",
+      "industry_help": "In which segment does your startup operate?",
+      "target_audience_label": "Target Audience",
+      "target_audience_placeholder": "E.g., Small entrepreneurs aged 25-45 looking for digital financial solutions...",
+      "target_audience_help": "Describe in detail who your ideal customers are"
+    },
+    "step2": {
+      "problem_label": "Problem You Solve",
+      "problem_placeholder": "Describe the main problem your startup solves...",
+      "problem_help": "What market pain does your startup alleviate?",
+      "solution_label": "Your Solution",
+      "solution_placeholder": "Explain how your startup solves this problem...",
+      "solution_help": "How do you deliver value to the customer?"
+    },
+    "step3": {
+      "objectives_label": "Project Objectives",
+      "objectives_placeholder": "E.g., Increase brand awareness, generate 1000 qualified leads...",
+      "objectives_help": "What results do you expect to achieve?",
+      "timeline_label": "Desired Timeline",
+      "timeline_placeholder": "Select the timeline",
+      "budget_label": "Available Budget",
+      "budget_placeholder": "Investment range"
+    },
+    "industries": {
+      "fintech": "Fintech",
+      "edtech": "Edtech",
+      "healthtech": "Healthtech",
+      "ecommerce": "E-commerce",
+      "saas": "SaaS",
+      "marketplace": "Marketplace",
+      "other": "Other"
+    },
+    "timeline": {
+      "1_month": "1 month",
+      "3_months": "3 months",
+      "6_months": "6 months",
+      "1_year": "1 year",
+      "flexible": "Flexible"
+    },
+    "budget": {
+      "up_to_10k": "Up to $10,000",
+      "10k_50k": "$10,000 - $50,000",
+      "50k_100k": "$50,000 - $100,000",
+      "100k_plus": "Above $100,000",
+      "flexible": "To be discussed"
+    },
+    "result": {
+      "error": "Error processing the generated briefing."
+    }
   }
 }

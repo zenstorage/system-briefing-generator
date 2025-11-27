@@ -30,6 +30,12 @@ export const BriefingCard = ({
 }: BriefingCardProps) => {
   const statusInfo = statusConfig[status];
 
+  const formattedDate = new Date(createdAt).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
   return (
     <Card 
       className="group hover:shadow-lg transition-all duration-300 hover:border-primary/20 cursor-pointer"
@@ -70,7 +76,7 @@ export const BriefingCard = ({
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" aria-hidden="true" />
-              <span>{createdAt}</span>
+              <span>{formattedDate}</span>
             </div>
           </div>
           

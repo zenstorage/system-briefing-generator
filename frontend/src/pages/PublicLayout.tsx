@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 const PublicLayout = () => {
   return (
     <>
-      <Header />
+      <Header showAuthButtons={false} />
       <Outlet />
     </>
   );

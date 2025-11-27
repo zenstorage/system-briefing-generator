@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, CheckCircle, Lightbulb, Target, Users } from "lucide-react";
 import { BriefingResult } from "./BriefingResult";
+import { Stepper } from "./Stepper";
+import { API_ENDPOINT } from "@/App";
+
+interface BriefingGeneratorProps {
+  onBack: () => void;
+}
 
 interface BriefingData {
-  companyName: string;
+  company_name: string;
   industry: string;
-  targetAudience: string;
+  target_audience: string;
   problem: string;
   solution: string;
   objectives: string;
@@ -20,42 +27,59 @@ interface BriefingData {
   budget: string;
 }
 
-const steps = [
-  {
-    id: 1,
-    title: "Informações da startup",
-    description: "Dados básicos sobre sua empresa",
-    icon: Users,
-  },
-  {
-    id: 2,
-    title: "Problema & Solução",
-    description: "Defina o problema e sua proposta de valor",
-    icon: Lightbulb,
-  },
-  {
-    id: 3,
-    title: "Objetivos & Recursos",
-    description: "Metas, cronograma e orçamento",
-    icon: Target,
-  },
-];
-
-export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
+const BriefingGenerator = ({ onBack }: BriefingGeneratorProps) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { step } = useParams<{ step: string }>();
   const [currentStep, setCurrentStep] = useState(1);
   const [showResult, setShowResult] = useState(false);
   const [generatedBriefing, setGeneratedBriefing] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [briefingData, setBriefingData] = useState<BriefingData>({
-    companyName: "",
+    company_name: "",
     industry: "",
-    targetAudience: "",
+    target_audience: "",
     problem: "",
     solution: "",
     objectives: "",
     timeline: "",
-    budget: "",
+    budget: ""
   });
+
+  const steps = [
+    {
+      id: 1,
+      title: t("briefing_generator.steps.1.title"),
+      description: t("briefing_generator.steps.1.description"),
+      icon: Users,
+    },
+    {
+      id: 2,
+      title: t("briefing_generator.steps.2.title"),
+      description: t("briefing_generator.steps.2.description"),
+      icon: Lightbulb,
+    },
+    {
+      id: 3,
+      title: t("briefing_generator.steps.3.title"),
+      description: t("briefing_generator.steps.3.description"),
+      icon: Target,
+    },
+  ];
+
+  useEffect(() => {
+    const initialStep = step ? parseInt(step, 10) : 1;
+    if (!isNaN(initialStep) && initialStep >= 1 && initialStep <= steps.length) {
+      setCurrentStep(initialStep);
+    } else {
+      navigate("/dashboard/new/1");
+    }
+  }, [step, navigate]);
+
+  const updateStep = (newStep: number) => {
+    setCurrentStep(newStep);
+    navigate(`/dashboard/new/${newStep}`);
+  };
 
   const updateData = (field: keyof BriefingData, value: string) => {
     setBriefingData(prev => ({ ...prev, [field]: value }));
@@ -64,9 +88,9 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
   const validateCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return briefingData.companyName.trim() !== "" && 
+        return briefingData.company_name.trim() !== "" && 
                briefingData.industry !== "" && 
-               briefingData.targetAudience.trim() !== "";
+               briefingData.target_audience.trim() !== "";
       case 2:
         return briefingData.problem.trim() !== "" && 
                briefingData.solution.trim() !== "";
@@ -79,13 +103,13 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
 
   const handleNext = () => {
     if (currentStep < 3 && validateCurrentStep()) {
-      setCurrentStep(currentStep + 1);
+      updateStep(currentStep + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      updateStep(currentStep - 1);
     }
   };
 
@@ -96,9 +120,12 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
     try {
       console.log("Generating briefing with data:", briefingData);
 
-      const res = await fetch("http://localhost:8090/briefing", {
+      const token = localStorage.getItem("token")
+
+      const res = await fetch(`${API_ENDPOINT}/api/briefings`, {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(briefingData),
@@ -115,7 +142,6 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
       setShowResult(true);
     } catch (error) {
       console.error("Error generating briefing:", error);
-      // You could show an error toast here
     } finally {
       setIsGenerating(false);
     }
@@ -124,11 +150,11 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
   const handleNewBriefing = () => {
     setShowResult(false);
     setGeneratedBriefing(null);
-    setCurrentStep(1);
+    updateStep(1);
     setBriefingData({
-      companyName: "",
+      company_name: "",
       industry: "",
-      targetAudience: "",
+      target_audience: "",
       problem: "",
       solution: "",
       objectives: "",
@@ -143,54 +169,54 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="companyName" required={true}>Nome da startup</Label>
+              <Label htmlFor="companyName" required={true}>{t("briefing_generator.step1.company_name_label")}</Label>
               <Input
                 id="companyName"
-                placeholder="Ex: TechInova"
-                value={briefingData.companyName}
-                onChange={(e) => updateData("companyName", e.target.value)}
+                placeholder={t("briefing_generator.step1.company_name_placeholder")}
+                value={briefingData.company_name}
+                onChange={(e) => updateData("company_name", e.target.value)}
                 required
                 aria-describedby="companyName-help"
               />
               <p id="companyName-help" className="text-sm text-muted-foreground">
-                Como sua startup é conhecida no mercado?
+                {t("briefing_generator.step1.company_name_help")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="industry" required={true}>Setor de atuação</Label>
+              <Label htmlFor="industry" required={true}>{t("briefing_generator.step1.industry_label")}</Label>
               <Select onValueChange={(value) => updateData("industry", value)}>
                 <SelectTrigger id="industry" aria-describedby="industry-help">
-                  <SelectValue placeholder="Selecione o setor" />
+                  <SelectValue placeholder={t("briefing_generator.step1.industry_placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="fintech">Fintech</SelectItem>
-                  <SelectItem value="edtech">Edtech</SelectItem>
-                  <SelectItem value="healthtech">Healthtech</SelectItem>
-                  <SelectItem value="ecommerce">E-commerce</SelectItem>
-                  <SelectItem value="saas">SaaS</SelectItem>
-                  <SelectItem value="marketplace">Marketplace</SelectItem>
-                  <SelectItem value="other">Outro</SelectItem>
+                  <SelectItem value="fintech">{t("briefing_generator.industries.fintech")}</SelectItem>
+                  <SelectItem value="edtech">{t("briefing_generator.industries.edtech")}</SelectItem>
+                  <SelectItem value="healthtech">{t("briefing_generator.industries.healthtech")}</SelectItem>
+                  <SelectItem value="ecommerce">{t("briefing_generator.industries.ecommerce")}</SelectItem>
+                  <SelectItem value="saas">{t("briefing_generator.industries.saas")}</SelectItem>
+                  <SelectItem value="marketplace">{t("briefing_generator.industries.marketplace")}</SelectItem>
+                  <SelectItem value="other">{t("briefing_generator.industries.other")}</SelectItem>
                 </SelectContent>
               </Select>
               <p id="industry-help" className="text-sm text-muted-foreground">
-                Em que segmento sua startup atua?
+                {t("briefing_generator.step1.industry_help")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="targetAudience" required={true}>Público-alvo</Label>
+              <Label htmlFor="targetAudience" required={true}>{t("briefing_generator.step1.target_audience_label")}</Label>
               <Textarea
                 id="targetAudience"
-                placeholder="Ex: Pequenos empreendedores entre 25-45 anos que buscam soluções financeiras digitais..."
-                value={briefingData.targetAudience}
-                onChange={(e) => updateData("targetAudience", e.target.value)}
+                placeholder={t("briefing_generator.step1.target_audience_placeholder")}
+                value={briefingData.target_audience}
+                onChange={(e) => updateData("target_audience", e.target.value)}
                 rows={3}
                 required
                 aria-describedby="targetAudience-help"
               />
               <p id="targetAudience-help" className="text-sm text-muted-foreground">
-                Descreva detalhadamente quem são seus clientes ideais
+                {t("briefing_generator.step1.target_audience_help")}
               </p>
             </div>
           </div>
@@ -200,10 +226,10 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="problem" required={true}>Problema que resolve</Label>
+              <Label htmlFor="problem" required={true}>{t("briefing_generator.step2.problem_label")}</Label>
               <Textarea
                 id="problem"
-                placeholder="Descreva o problema principal que sua startup resolve..."
+                placeholder={t("briefing_generator.step2.problem_placeholder")}
                 value={briefingData.problem}
                 onChange={(e) => updateData("problem", e.target.value)}
                 rows={4}
@@ -211,15 +237,15 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
                 aria-describedby="problem-help"
               />
               <p id="problem-help" className="text-sm text-muted-foreground">
-                Qual dor do mercado sua startup alivia?
+                {t("briefing_generator.step2.problem_help")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="solution" required={true}>Sua solução</Label>
+              <Label htmlFor="solution" required={true}>{t("briefing_generator.step2.solution_label")}</Label>
               <Textarea
                 id="solution"
-                placeholder="Explique como sua startup resolve esse problema..."
+                placeholder={t("briefing_generator.step2.solution_placeholder")}
                 value={briefingData.solution}
                 onChange={(e) => updateData("solution", e.target.value)}
                 rows={4}
@@ -227,7 +253,7 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
                 aria-describedby="solution-help"
               />
               <p id="solution-help" className="text-sm text-muted-foreground">
-                Como vocês entregam valor para o cliente?
+                {t("briefing_generator.step2.solution_help")}
               </p>
             </div>
           </div>
@@ -237,10 +263,10 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="objectives" required={true}>Objetivos do projeto</Label>
+              <Label htmlFor="objectives" required={true}>{t("briefing_generator.step3.objectives_label")}</Label>
               <Textarea
                 id="objectives"
-                placeholder="Ex: Aumentar reconhecimento da marca, gerar 1000 leads qualificados..."
+                placeholder={t("briefing_generator.step3.objectives_placeholder")}
                 value={briefingData.objectives}
                 onChange={(e) => updateData("objectives", e.target.value)}
                 rows={3}
@@ -248,39 +274,39 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
                 aria-describedby="objectives-help"
               />
               <p id="objectives-help" className="text-sm text-muted-foreground">
-                Quais resultados esperam alcançar?
+                {t("briefing_generator.step3.objectives_help")}
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="timeline">Prazo desejado</Label>
+                <Label htmlFor="timeline">{t("briefing_generator.step3.timeline_label")}</Label>
                 <Select onValueChange={(value) => updateData("timeline", value)}>
                   <SelectTrigger id="timeline">
-                    <SelectValue placeholder="Selecione o prazo" />
+                    <SelectValue placeholder={t("briefing_generator.step3.timeline_placeholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1-month">1 mês</SelectItem>
-                    <SelectItem value="3-months">3 meses</SelectItem>
-                    <SelectItem value="6-months">6 meses</SelectItem>
-                    <SelectItem value="1-year">1 ano</SelectItem>
-                    <SelectItem value="flexible">Flexível</SelectItem>
+                    <SelectItem value="1-month">{t("briefing_generator.timeline.1_month")}</SelectItem>
+                    <SelectItem value="3-months">{t("briefing_generator.timeline.3_months")}</SelectItem>
+                    <SelectItem value="6-months">{t("briefing_generator.timeline.6_months")}</SelectItem>
+                    <SelectItem value="1-year">{t("briefing_generator.timeline.1_year")}</SelectItem>
+                    <SelectItem value="flexible">{t("briefing_generator.timeline.flexible")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget">Orçamento disponível</Label>
+                <Label htmlFor="budget">{t("briefing_generator.step3.budget_label")}</Label>
                 <Select onValueChange={(value) => updateData("budget", value)}>
                   <SelectTrigger id="budget">
-                    <SelectValue placeholder="Faixa de investimento" />
+                    <SelectValue placeholder={t("briefing_generator.step3.budget_placeholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="up-to-10k">Até R$ 10.000</SelectItem>
-                    <SelectItem value="10k-50k">R$ 10.000 - R$ 50.000</SelectItem>
-                    <SelectItem value="50k-100k">R$ 50.000 - R$ 100.000</SelectItem>
-                    <SelectItem value="100k-plus">Acima de R$ 100.000</SelectItem>
-                    <SelectItem value="flexible">A discutir</SelectItem>
+                    <SelectItem value="up-to-10k">{t("briefing_generator.budget.up_to_10k")}</SelectItem>
+                    <SelectItem value="10k-50k">{t("briefing_generator.budget.10k_50k")}</SelectItem>
+                    <SelectItem value="50k-100k">{t("briefing_generator.budget.50k_100k")}</SelectItem>
+                    <SelectItem value="100k-plus">{t("briefing_generator.budget.100k_plus")}</SelectItem>
+                    <SelectItem value="flexible">{t("briefing_generator.budget.flexible")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -293,36 +319,48 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
-  // Show result screen if briefing was generated
   if (showResult && generatedBriefing) {
+    const getBriefingContent = () => {
+      try {
+        if (generatedBriefing?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          const textContent = generatedBriefing.candidates[0].content.parts[0].text;
+          const parsedContent = JSON.parse(textContent);
+          return parsedContent.briefing || textContent;
+        }
+        return t("briefing_generator.result.error");
+      } catch (error) {
+        console.error("Error parsing briefing content:", error);
+        return t("briefing_generator.result.error");
+      }
+    };
+
     return (
       <BriefingResult 
-        briefingData={generatedBriefing}
-        onBack={() => setShowResult(false)}
+        briefingContent={getBriefingContent()}
+        onBack={() => navigate("/dashboard")}
         onNewBriefing={handleNewBriefing}
       />
     );
   }
 
-  const progress = (currentStep / 3) * 100;
   const CurrentIcon = steps[currentStep - 1].icon;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto mt-10 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button 
           variant="ghost" 
-          onClick={onBack}
-          aria-label="Voltar para dashboard"
+          onClick={() => navigate("/dashboard")}
+          aria-label={t("briefing_generator.back_to_dashboard_aria")}
         >
           <ArrowLeft className="h-4 w-4" />
-          Voltar
+          {t("briefing_generator.back_button")}
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Gerador de Briefing</h1>
+          <h1 className="text-2xl font-bold">{t("briefing_generator.title")}</h1>
           <p className="text-muted-foreground">
-            Crie um briefing detalhado para sua startup em 3 passos simples
+            {t("briefing_generator.subtitle")}
           </p>
         </div>
       </div>
@@ -330,20 +368,7 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
       {/* Progress */}
       <Card>
         <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Progresso</span>
-              <span className="text-sm text-muted-foreground">{currentStep}/3</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              {steps.map((step) => (
-                <span key={step.id} className={currentStep >= step.id ? "text-primary font-medium" : ""}>
-                  {step.title}
-                </span>
-              ))}
-            </div>
-          </div>
+          <Stepper steps={steps} currentStep={currentStep} />
         </CardContent>
       </Card>
 
@@ -355,7 +380,7 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
               <CurrentIcon className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Etapa {currentStep}: {steps[currentStep - 1].title}</CardTitle>
+              <CardTitle>{t("briefing_generator.step_title", { step: currentStep })}: {steps[currentStep - 1].title}</CardTitle>
               <CardDescription>{steps[currentStep - 1].description}</CardDescription>
             </div>
           </div>
@@ -373,7 +398,7 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
           disabled={currentStep === 1}
         >
           <ArrowLeft className="h-4 w-4" />
-          Anterior
+          {t("briefing_generator.previous_button")}
         </Button>
 
         {currentStep < 3 ? (
@@ -382,7 +407,7 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
             onClick={handleNext}
             disabled={!validateCurrentStep()}
           >
-            Próximo
+            {t("briefing_generator.next_button")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : (
@@ -392,10 +417,12 @@ export const BriefingGenerator = ({ onBack }: { onBack: () => void }) => {
             disabled={!validateCurrentStep() || isGenerating}
           >
             <CheckCircle className="h-4 w-4" />
-            {isGenerating ? "Gerando..." : "Gerar Briefing"}
+            {isGenerating ? t("briefing_generator.generating_button") : t("briefing_generator.generate_button")}
           </Button>
         )}
       </div>
     </div>
   );
 };
+
+export default BriefingGenerator;

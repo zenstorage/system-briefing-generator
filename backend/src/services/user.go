@@ -36,7 +36,7 @@ func LoginUser(email, password string) (string, error) {
 		return "", err
 	}
 
-	return auth.CreateToken(strconv.Itoa(user.ID))
+	return auth.CreateToken(strconv.Itoa(int(user.ID)))
 }
 
 func CreateUser(user *models.User) error {
