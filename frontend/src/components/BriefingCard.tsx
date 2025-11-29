@@ -1,35 +1,24 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { FileText, Calendar, Users, ArrowRight } from "lucide-react";
 
 interface BriefingCardProps {
   id: string;
   title: string;
   description: string;
-  status: "draft" | "completed" | "in-progress";
   createdAt: string;
   clientName: string;
   onClick?: () => void;
 }
 
-const statusConfig = {
-  draft: { label: "Rascunho", className: "bg-secondary text-secondary-foreground" },
-  "in-progress": { label: "Em Progresso", className: "bg-gradient-accent text-accent-foreground" },
-  completed: { label: "Finalizado", className: "bg-gradient-primary text-primary-foreground" },
-};
-
 export const BriefingCard = ({ 
   id, 
   title, 
   description, 
-  status, 
   createdAt, 
   clientName, 
   onClick 
 }: BriefingCardProps) => {
-  const statusInfo = statusConfig[status];
-
   const formattedDate = new Date(createdAt).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -38,7 +27,7 @@ export const BriefingCard = ({
 
   return (
     <Card 
-      className="group hover:shadow-lg transition-all duration-300 hover:border-primary/20 cursor-pointer"
+      className="group hover:shadow-lg transition-all duration-300 hover:border-primary/20 cursor-pointer h-full flex flex-col justify-between"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -50,7 +39,7 @@ export const BriefingCard = ({
       }}
       aria-label={`Briefing ${title} para ${clientName}`}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 flex-1">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -58,9 +47,6 @@ export const BriefingCard = ({
               {title}
             </CardTitle>
           </div>
-          <Badge className={statusInfo.className}>
-            {statusInfo.label}
-          </Badge>
         </div>
         <CardDescription className="line-clamp-2">
           {description}
@@ -72,7 +58,7 @@ export const BriefingCard = ({
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" aria-hidden="true" />
-              <span>{clientName}</span>
+              <span className="capitalize">{clientName}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" aria-hidden="true" />

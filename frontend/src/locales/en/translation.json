@@ -38,9 +38,9 @@
       "title": "Everything you need in one place",
       "items": [
         "Adaptable intelligent templates",
-        "Integration with popular tools",
-        "Detailed analysis and metrics",
-        "24/7 specialized support"
+        "Save your briefing history",
+        "Organized by AI",
+        "Share your briefings easily"
       ]
     },
     "cta_section": {
@@ -136,10 +136,6 @@
       "average_briefings": {
         "title": "Average Briefings",
         "description": "Average briefings per day"
-      },
-      "completion_rate": {
-        "title": "Completion Rate",
-        "description": "Percentage of completed briefings"
       },
       "active_clients": {
         "title": "Active Clients",

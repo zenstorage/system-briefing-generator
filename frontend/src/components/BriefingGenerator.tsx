@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, Lightbulb, Target, Users } from "lu
 import { BriefingResult } from "./BriefingResult";
 import { Stepper } from "./Stepper";
 import { API_ENDPOINT } from "@/App";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BriefingGeneratorProps {
   onBack: () => void;
@@ -339,6 +340,7 @@ const BriefingGenerator = ({ onBack }: BriefingGeneratorProps) => {
         briefingContent={getBriefingContent()}
         onBack={() => navigate("/dashboard")}
         onNewBriefing={handleNewBriefing}
+        title={briefingData.company_name}
       />
     );
   }
@@ -386,7 +388,17 @@ const BriefingGenerator = ({ onBack }: BriefingGeneratorProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          {renderStepContent()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderStepContent()}
+            </motion.div>
+          </AnimatePresence>
         </CardContent>
       </Card>
 

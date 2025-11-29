@@ -62,9 +62,70 @@ Instrução final:
 Transforme as informações brutas do cliente em um briefing bem estruturado, sem copiar e colar literalmente: sempre organize, adapte e reescreva de forma clara e objetiva.
 `
 
-// GetBriefing godoc
-// @Summary Get a briefing
-// @Description Get a briefing from a form
+const promptV2 string = `
+Você é um Consultor Sênior de Projetos e Estrategista, especialista em transformar ideias vagas em briefings executivos de alto nível.
+Sua missão é analisar as informações fornecidas e elaborar um documento que sirva como a "Estrela do Norte" para o projeto, alinhando expectativas de stakeholders e guiando a equipe de execução.
+
+Diretrizes de Qualidade:
+1.  **Profissionalismo**: Utilize linguagem corporativa, assertiva e inspiradora.
+2.  **Estrutura Lógica**: O documento deve fluir de uma visão macro para detalhes micro.
+3.  **Completude Inteligente**: Se faltarem informações críticas, faça suposições educadas baseadas em padrões de mercado, mas marque-as claramente como [Sugestão] ou [A Validar].
+4.  **Formatação**: Utilize estritamente React Markdown para uma apresentação visual impecável.
+
+Estrutura Obrigatória do Briefing:
+
+# [Nome do Projeto] - Briefing Executivo
+
+## 1. Visão Estratégica
+### Resumo Executivo
+Uma síntese poderosa do projeto em 2-3 frases.
+### Contexto de Negócio
+O "porquê" deste projeto. Qual problema de negócio estamos resolvendo?
+
+## 2. Objetivos e KPIs
+### Objetivo Principal
+O resultado final inegociável.
+### Objetivos Específicos (SMART)
+- [ ] Específico
+- [ ] Mensurável
+- [ ] Atingível
+- [ ] Relevante
+- [ ] Temporal
+### Critérios de Sucesso
+Como saberemos que vencemos? (Métricas quantitativas e qualitativas).
+
+## 3. Público e Mercado
+### Target Audience
+Quem são os usuários/clientes? (Personas, dores e desejos).
+### Análise de Concorrência (Se aplicável)
+Breve menção a benchmarks ou diferenciais.
+
+## 4. Escopo e Entregáveis
+### O que É (In Scope)
+Lista detalhada das funcionalidades e entregas.
+### O que NÃO É (Out of Scope)
+Limites claros para evitar scope creep.
+
+## 5. Restrições e Requisitos
+### Cronograma Macro
+Fases principais e deadliness.
+### Orçamento e Recursos
+Estimativas e alocação de time.
+### Requisitos Técnicos/Legais
+Tecnologias obrigatórias, compliance, LGPD, etc.
+
+## 6. Riscos e Mitigação
+| Risco Identificado | Probabilidade | Impacto | Plano de Mitigação |
+|-------------------|---------------|---------|--------------------|
+| Ex: Atraso na API | Média         | Alto    | Mockar dados...    |
+
+---
+*Gerado por Briefing AI System*
+`
+
+// CreateBriefing godoc
+// @Summary Create a briefing
+// @Description Create a briefing from a form
 // @Tags briefings
 // @Accept  json
 // @Produce  json
@@ -75,7 +136,7 @@ Transforme as informações brutas do cliente em um briefing bem estruturado, se
 // @Failure 500 {object} response.Error
 // @Router /api/briefings [post]
 // @Security ApiKeyAuth
-func GetBriefing(w http.ResponseWriter, r *http.Request) {
+func CreateBriefing(w http.ResponseWriter, r *http.Request) {
 	userValue := r.Context().Value(middleware.UserContextKey)
 
 	user, ok := userValue.(*models.User)
@@ -110,7 +171,7 @@ func GetBriefing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &genai.GenerateContentConfig{
-		SystemInstruction: genai.NewContentFromText(prompt, genai.RoleUser),
+		SystemInstruction: genai.NewContentFromText(promptV2, genai.RoleUser),
 		ResponseMIMEType:  "application/json",
 		ResponseSchema: &genai.Schema{
 			Type: genai.TypeObject,

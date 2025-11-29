@@ -11,6 +11,7 @@ import axios from "axios";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { API_ENDPOINT } from "@/App";
+import { motion } from "framer-motion";
 
 const Register = () => {  
   const { t } = useTranslation();
@@ -106,9 +107,13 @@ const Register = () => {
   return (
     <>
       <div className="bg-gradient-subtle flex items-center justify-center px-6 h-[calc(100vh-66px)]">
-      <div className="w-full max-w-md">
+      <motion.div 
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
         
-
         {/* Registration Form */}
         <Card className="border-0 shadow-card">
           <CardHeader className="space-y-1">
@@ -253,7 +258,7 @@ const Register = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
       </div>
     </>
   );

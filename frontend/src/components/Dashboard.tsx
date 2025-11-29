@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { BriefingCard } from "./BriefingCard";
 import { BriefingResult } from "./BriefingResult";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 
 import {
@@ -15,16 +16,12 @@ import {
   Filter,
   FileText,
   TrendingUp,
-  Users,
-  Clock,
   BarChart3,
   Award,
-  CloudCog
 } from "lucide-react";
 import heroImage from "@/assets/hero-briefing.jpg";
 
 import { useTranslation } from "react-i18next";
-import Markdown from "react-markdown";
 import { API_ENDPOINT } from "@/App";
 import Fuse from "fuse.js";
 
@@ -32,7 +29,6 @@ interface Briefing {
   id: string;
   title: string;
   description: string;
-  status: "draft" | "completed" | "in-progress";
   createdAt: string;
   clientName: string;
   briefingResult?: any;
@@ -68,7 +64,6 @@ export const Dashboard = () => {
           id: briefing.id,
           title: briefing.briefing_result.briefing_short_title ?? 'Untitled Briefing',
           description: (briefing.briefing_result?.briefing?.substring(0, 100) ?? 'No description available') + "...",
-          status: "completed" as const,
           createdAt: new Date(briefing.created_at).toISOString(),
           clientName: briefing.company_name ?? 'Unknown Client',
           briefingResult: briefing.briefing_result,
@@ -82,8 +77,14 @@ export const Dashboard = () => {
           const briefingDate = new Date(briefing.createdAt);
           return briefingDate.getMonth() === currentMonth && briefingDate.getFullYear() === currentYear;
         }).length;
+        const dailyBriefings = formattedBriefings.filter((briefing: Briefing) => {
+          const briefingDate = new Date(briefing.createdAt);
+          return briefingDate.getDate() === new Date().getDate() && briefingDate.getMonth() === currentMonth && briefingDate.getFullYear() === currentYear;
+        }).length;
 
         const monthlyPercentage = totalBriefings > 0 ? (monthlyBriefings / totalBriefings) * 100 : 0;
+        const dailyPercentage = totalBriefings > 0 ? (dailyBriefings / totalBriefings) * 100 : 0;
+
 
         setStats([
           {
@@ -102,18 +103,12 @@ export const Dashboard = () => {
           },
           {
             title: t("dashboard.stats.average_briefings.title"),
-            value: "0",
+            value: dailyBriefings.toString(),
             description: t("dashboard.stats.average_briefings.description"),
             icon: BarChart3,
-            trend: "0%",
+            trend: `${dailyPercentage.toFixed(0)}%`,
           },
-          {
-            title: t("dashboard.stats.completion_rate.title"),
-            value: "0%",
-            description: t("dashboard.stats.completion_rate.description"),
-            icon: Award,
-            trend: "0%",
-          },
+
         ]);
 
 
@@ -138,6 +133,7 @@ export const Dashboard = () => {
 
   const handleBriefingClick = (briefing: Briefing) => {
     console.log("Briefing clicked:", briefing);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setSelectedBriefing(briefing);
   };
 
@@ -158,11 +154,7 @@ export const Dashboard = () => {
         title: t("dashboard.stats.average_briefings.title"),
         description: t("dashboard.stats.average_briefings.description"),
       },
-      {
-        ...prevStats[3],
-        title: t("dashboard.stats.completion_rate.title"),
-        description: t("dashboard.stats.completion_rate.description"),
-      },
+
     ]);
   }, [t]);
   
@@ -189,13 +181,7 @@ export const Dashboard = () => {
       icon: BarChart3,
       trend: "0%",
     },
-    {
-      title: t("dashboard.stats.completion_rate.title"),
-      value: "0%",
-      description: t("dashboard.stats.completion_rate.description"),
-      icon: Award,
-      trend: "0%",
-    },
+
   ]);
 
   const handleBack = () => {
@@ -209,9 +195,31 @@ export const Dashboard = () => {
         briefingContent={selectedBriefing.briefingResult.briefing.replaceAll("\\n", "\n")}
         onBack={handleBack}
         onNewBriefing={() => navigate("/dashboard/new")}
+        title={selectedBriefing.title}
       />
     );
   }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -230,7 +238,12 @@ export const Dashboard = () => {
           </Button>
         </div>
         {/* Hero Section */}
-        <section className="relative overflow-hidden rounded-2xl">
+        <motion.section 
+          className="relative overflow-hidden rounded-2xl"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="absolute inset-0">
             <img
               src={heroImage}
@@ -258,38 +271,45 @@ export const Dashboard = () => {
               </Button>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Stats */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.section 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {stats.map((stat) => {
             const Icon = stat.icon;
             const isPositive = stat.trend.startsWith('+');
 
             return (
-              <Card key={stat.title} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
+              <motion.div key={stat.title} variants={itemVariants}>
+                <Card className="hover:shadow-lg transition-shadow h-full">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <Badge
+                        variant={isPositive ? "default" : "secondary"}
+                        className={isPositive ? "bg-gradient-accent" : ""}
+                      >
+                        {stat.trend}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={isPositive ? "default" : "secondary"}
-                      className={isPositive ? "bg-gradient-accent" : ""}
-                    >
-                      {stat.trend}
-                    </Badge>
-                  </div>
-                  <div className="mt-4">
-                    <h3 className="text-2xl font-bold">{stat.value}</h3>
-                    <p className="font-medium text-sm">{stat.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="mt-4">
+                      <h3 className="text-2xl font-bold">{stat.value}</h3>
+                      <p className="font-medium text-sm">{stat.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             );
           })}
-        </section>
+        </motion.section>
 
         {/* Briefings Section */}
         <section className="space-y-6">
@@ -334,39 +354,51 @@ export const Dashboard = () => {
               ))}
             </div>
           ) : filteredBriefings.length === 0 ? (
-            <Card className="py-12">
-              <CardContent className="text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
-                  {searchTerm ? t("dashboard.briefings_section.no_briefings_found_title") : t("dashboard.briefings_section.no_briefings_created_title")}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {searchTerm
-                    ? `${t("dashboard.briefings_section.no_results_for")} "${searchTerm}"`
-                    : t("dashboard.briefings_section.start_creating_briefing")
-                  }
-                </p>
-                {!searchTerm && (
-                  <Button
-                    variant="outline-primary"
-                    onClick={() => navigate("/dashboard/new")}
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t("dashboard.briefings_section.create_first_briefing_button")}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="py-12">
+                <CardContent className="text-center">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    {searchTerm ? t("dashboard.briefings_section.no_briefings_found_title") : t("dashboard.briefings_section.no_briefings_created_title")}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {searchTerm
+                      ? `${t("dashboard.briefings_section.no_results_for")} "${searchTerm}"`
+                      : t("dashboard.briefings_section.start_creating_briefing")
+                    }
+                  </p>
+                  {!searchTerm && (
+                    <Button
+                      variant="outline-primary"
+                      onClick={() => navigate("/dashboard/new")}
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t("dashboard.briefings_section.create_first_briefing_button")}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {filteredBriefings.map((briefing) => (
-                <BriefingCard
-                  key={briefing.id}
-                  {...briefing}
-                  onClick={() => handleBriefingClick(briefing)}
-                />
+                <motion.div key={briefing.id} variants={itemVariants}>
+                  <BriefingCard
+                    {...briefing}
+                    onClick={() => handleBriefingClick(briefing)}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </section>
       </main>

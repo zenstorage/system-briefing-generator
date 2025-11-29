@@ -44,7 +44,7 @@ func init() {
 	api := app.PathPrefix("/api").Subrouter()
 	api.Use(middleware.AuthMiddleware)
 
-	api.HandleFunc("/briefings", handlers.GetBriefing).Methods("POST", "OPTIONS")
+	api.HandleFunc("/briefings", handlers.CreateBriefing).Methods("POST", "OPTIONS")
 	api.HandleFunc("/briefings", handlers.GetBriefings).Methods("GET", "OPTIONS")
 	api.HandleFunc("/users/id", handlers.GetUser).Methods("GET", "OPTIONS")
 	api.HandleFunc("/users", handlers.GetUsers).Methods("GET", "OPTIONS")

@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Share2, Printer, Image } from "lucide-react";
+import remarkGfm from "remark-gfm";
 import ReactMarkdown from "react-markdown";
+
 import { toast } from "@/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import html2canvas from "html2canvas";
@@ -11,9 +13,10 @@ interface BriefingResultProps {
   briefingContent: string;
   onBack: () => void;
   onNewBriefing: () => void;
+  title?: string;
 }
 
-export const BriefingResult = ({ briefingContent, onBack, onNewBriefing }: BriefingResultProps) => {
+export const BriefingResult = ({ briefingContent, onBack, onNewBriefing, title }: BriefingResultProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePrint = () => {
@@ -31,13 +34,28 @@ export const BriefingResult = ({ briefingContent, onBack, onNewBriefing }: Brief
           onclone: (document) => {
             const clonedElement = document.getElementById('briefing-content');
             if (clonedElement) {
-              clonedElement.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--background').trim() === '240 10% 3.9%' ? '#09090b' : '#ffffff';
+              const isDark = document.documentElement.classList.contains('dark');
+              clonedElement.style.backgroundColor = isDark ? '#09090b' : '#ffffff';
+              clonedElement.style.color = isDark ? '#fafafa' : '#09090b';
               clonedElement.style.padding = '3rem';
+              
+              const textElements = clonedElement.querySelectorAll('*');
+              textElements.forEach((el) => {
+                if (el instanceof HTMLElement) {
+                  el.style.color = isDark ? '#fafafa' : '#09090b';
+                  if (el.tagName === 'H1' || el.tagName === 'STRONG') {
+                     el.style.color = isDark ? '#fafafa' : '#09090b';
+                  }
+                  if (el.tagName === 'TH' || el.tagName === 'TD') {
+                    el.style.borderColor = isDark ? '#27272a' : '#e4e4e7';
+                  }
+                }
+              });
             }
           }
         });
         const link = document.createElement('a');
-        link.download = 'briefing-startup.png';
+        link.download = `${title || 'briefing'}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       }
@@ -201,7 +219,7 @@ export const BriefingResult = ({ briefingContent, onBack, onNewBriefing }: Brief
         <CardContent>
           <div className="prose prose-slate dark:prose-invert max-w-none" id="briefing-content">
             <ReactMarkdown
-              
+              remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
                   <h1 className="text-2xl font-bold text-primary mb-4 border-b border-border pb-2">
@@ -237,6 +255,38 @@ export const BriefingResult = ({ briefingContent, onBack, onNewBriefing }: Brief
                   <strong className="font-semibold text-foreground">
                     {children}
                   </strong>
+                ),
+                table: ({ children }) => (
+                  <div className="my-6 w-full overflow-y-auto">
+                    <table className="w-full border-collapse border border-border text-sm">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-muted border-b border-foreground">
+                    {children}
+                  </thead>
+                ),
+                tbody: ({ children }) => (
+                  <tbody>
+                    {children}
+                  </tbody>
+                ),
+                tr: ({ children }) => (
+                  <tr className="border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                    {children}
+                  </tr>
+                ),
+                th: ({ children }) => (
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 border-r border-border last:border-r-0">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 border-r border-border last:border-r-0">
+                    {children}
+                  </td>
                 ),
               }}
             >

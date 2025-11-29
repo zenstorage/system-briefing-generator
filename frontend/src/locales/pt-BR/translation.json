@@ -38,9 +38,9 @@
       "title": "Tudo que você precisa em um só lugar",
       "items": [
         "Templates inteligentes adaptáveis",
-        "Integração com ferramentas populares",
-        "Análise e métricas detalhadas",
-        "Suporte especializado 24/7"
+        "Guarde o histórico de seus briefings",
+        "Organizados por IA",
+        "Compartilhe seus briefings facilmente"
       ]
     },
     "cta_section": {
@@ -136,10 +136,6 @@
       "average_briefings": {
         "title": "Média Diária",
         "description": "Média de briefings por dia"
-      },
-      "completion_rate": {
-        "title": "Taxa de Conclusão",
-        "description": "Percentual de briefings concluídos"
       },
       "active_clients": {
         "title": "Clientes Ativos",
